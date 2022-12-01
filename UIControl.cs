@@ -116,7 +116,7 @@ namespace UI_Mimic
         public static void Keyboard_Text(string Send)
         {
             List<Input> inputs = new List<Input>();
-            for (int i = 0; i < CharCodes.Count; i++)
+            for (int i = 0; i < Send.Length; i++)
             {
                 inputs.Add(GenerateKeyEvent(CharCodes[Send[i]], false));
                 inputs.Add(GenerateKeyEvent(CharCodes[Send[i]]));
@@ -189,9 +189,10 @@ namespace UI_Mimic
         /// <summary>
         /// All Text character Codes in a Dictionary
         /// </summary>
-        private static Dictionary<char, ushort> CharCodes = new Dictionary<char, ushort>()
+        private static readonly Dictionary<char, ushort> CharCodes = new Dictionary<char, ushort>()
     {
-        //Special Charactors
+            //Special Charactors
+        {' ',0x20 },
         {'!',0x21 },
         {'"',0x22 },
         {'#',0x23 },
@@ -259,7 +260,7 @@ namespace UI_Mimic
         {']',0x5D },
         {'^',0x5E },
         {'_',0x5F },
-        {'`',0x60},
+        {'`',0x60 },
         //Lower case
         {'a',0x61 },
         {'b',0x62 },
