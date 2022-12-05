@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Drawing;
 using System;
+using System.Diagnostics;
 
 namespace UI_Mimic
 {
@@ -13,10 +14,20 @@ namespace UI_Mimic
         private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
         [DllImport("user32.dll")]
         private static extern IntPtr GetMessageExtraInfo();
+
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr WindowHandle);
         #endregion Imports
 
 
         #region Public Interface
+        public static void FocusProcess(string ProcessName)
+        {
+            Process[] allitems = Process.GetProcesses();
+            foreach (Process a in allitems)
+                if (a.ProcessName.Contains("whatsminer"))
+                    SetForegroundWindow(a.MainWindowHandle);
+        }
         /// <summary>
         /// Move the mouse pointer then click on the spot
         /// </summary>
