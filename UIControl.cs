@@ -14,7 +14,9 @@ namespace UI_Mimic
         private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
         [DllImport("user32.dll")]
         private static extern IntPtr GetMessageExtraInfo();
-
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
+        private const int SW_RESTORE = 9;
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr WindowHandle);
         #endregion Imports
@@ -25,8 +27,12 @@ namespace UI_Mimic
         {
             Process[] allitems = Process.GetProcesses();
             foreach (Process a in allitems)
-                if (a.ProcessName.Contains("whatsminer"))
-                    SetForegroundWindow(a.MainWindowHandle);
+                if (a.ProcessName.ToLower().Contains("whatsminer"))
+                {
+                    IntPtr hWnd = a.MainWindowHandle;
+                    ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+                    SetForegroundWindow(hWnd);
+                }
         }
         /// <summary>
         /// Move the mouse pointer then click on the spot
