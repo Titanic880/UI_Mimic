@@ -30,7 +30,7 @@ namespace UI_Mimic
                 if (a.ProcessName.ToLower().Contains("whatsminer"))
                 {
                     IntPtr hWnd = a.MainWindowHandle;
-                    ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+                    ////ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
                     SetForegroundWindow(hWnd);
                 }
         }
