@@ -23,11 +23,11 @@ namespace UI_Mimic
 
 
         #region Public Interface
-        public static void FocusProcess(string ProcessName)
+        public static void FocusProcess(string processname)
         {
             Process[] allitems = Process.GetProcesses();
             foreach (Process a in allitems)
-                if (a.ProcessName.ToLower().Contains("whatsminer"))
+                if (a.ProcessName.ToLower().Contains(processname.ToLower()))
                 {
                     IntPtr hWnd = a.MainWindowHandle;
                     ////ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
