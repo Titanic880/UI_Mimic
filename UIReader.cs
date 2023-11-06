@@ -38,9 +38,9 @@ namespace UI_Mimic
         private static extern int GetCurrentThreadId();
 
         [DllImport("kernel32.dll")]
-        static extern IntPtr LoadLibrary(string lpFileName);
+        private static extern IntPtr LoadLibrary(string lpFileName);
 
-        public enum HookType : int
+        internal enum HookType : int
         {
             WH_JOURNALRECORD = 0,
             WH_JOURNALPLAYBACK = 1,
@@ -83,7 +83,7 @@ namespace UI_Mimic
             }
         }
 
-        public void TestHook()
+        public void TestError()
         {
             OnError?.Invoke(new Exception("test"));
         }
@@ -166,7 +166,7 @@ namespace UI_Mimic
             return CallNextHookEx(HookID, Code, W, L);
         }
 
-        public enum KeyEvents
+        private enum KeyEvents
         {
             KeyDown = 0x0100,
             KeyUp = 0x0101,
@@ -175,7 +175,7 @@ namespace UI_Mimic
         }
 
         [DllImport("user32.dll")]
-        static public extern short GetKeyState(Keys nVirtKey);
+        private static extern short GetKeyState(Keys nVirtKey);
 
         public static bool GetCapslock()
         {
