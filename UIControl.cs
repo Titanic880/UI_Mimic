@@ -3,45 +3,25 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Drawing;
 using System;
-using System.Diagnostics;
 
 namespace UI_Mimic
 {
     public static class UserControl
     {
-        #region Imports
+        
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
         [DllImport("user32.dll")]
         private static extern IntPtr GetMessageExtraInfo();
-        [DllImport("user32.dll")]
-        public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
-        private const int SW_RESTORE = 9;
-        [DllImport("user32.dll")]
-        public static extern bool SetForegroundWindow(IntPtr WindowHandle);
-        #endregion Imports
-
-
-        #region Public Interface
-        public static void FocusProcess(string processname)
-        {
-            Process[] allitems = Process.GetProcesses();
-            foreach (Process a in allitems)
-                if (a.ProcessName.ToLower().Contains(processname.ToLower()))
-                {
-                    IntPtr hWnd = a.MainWindowHandle;
-                    ////ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
-                    SetForegroundWindow(hWnd);
-                }
-        }
+        
         /// <summary>
         /// Move the mouse pointer then click on the spot
         /// </summary>
         /// <param name="mousePosition"></param>
         /// <param name="LeftClick"></param>
-        public static void Mouse_Move_Click(Point mousePosition, bool LeftClick = true)
+        public static void Mouse_Move_Click(Point NewPosition, bool LeftClick = true)
         {
-            Cursor.Position = mousePosition;
+            Cursor.Position = NewPosition;
             Input[] MouseAction = new Input[]
             {
             new Input
@@ -74,7 +54,7 @@ namespace UI_Mimic
         /// Move the Mouse Cursor
         /// </summary>
         /// <param name="point"></param>
-        public static void Mouse_Move(Point point)
+        public static void Mouse_Move(Point NewPosition)
         {
             Input[] MouseAction = new Input[]
             {
@@ -85,8 +65,8 @@ namespace UI_Mimic
                     {
                         mi = new MouseInput
                         {
-                            dx = point.X,
-                            dy = point.Y,
+                            dx = NewPosition.X,
+                            dy = NewPosition.Y,
                             dwFlags = (uint)MouseEventF.Move
                         }
                     }
@@ -182,8 +162,6 @@ namespace UI_Mimic
             };
             _ = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
         }
-        #endregion Public Interface
-
 
         #region Private Data
         private static Input GenerateKeyEvent(ushort Code, bool Up = true)
@@ -196,7 +174,7 @@ namespace UI_Mimic
                     ki = new KeyboardInput
                     {
                         wVk = 0,
-                        wScan = (ushort)Code,
+                        wScan = Code,
                         dwFlags = (uint)(Up ? KeyEventF.KeyUp : KeyEventF.KeyDown | KeyEventF.Unicode),
                         dwExtraInfo = GetMessageExtraInfo()
                     }
@@ -208,7 +186,7 @@ namespace UI_Mimic
         /// </summary>
         private static readonly Dictionary<char, ushort> CharCodes = new Dictionary<char, ushort>()
     {
-            //Special Charactors
+        //Special Charactors
         {' ',0x20 },
         {'!',0x21 },
         {'"',0x22 },
