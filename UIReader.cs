@@ -110,12 +110,19 @@ namespace UI_Mimic
         {
             //Check for window within allowed options
             string ActiveWindow = WindowInfo.GetActiveWindowTitle();
-            if(ActiveWindow == null) return CallNextHookEx(HookID, Code, W, L);
+            if(ActiveWindow == null) 
+                return CallNextHookEx(HookID, Code, W, L);
+
+            //EXACT Check
             else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any())
                 return CallNextHookEx(HookID, Code, W, L);
-            //KBDLLHookStruct LS = new KBDLLHookStruct();
+
+            //Inaccurate Check
+            else if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any() && Global)
+                return CallNextHookEx(HookID, Code, W, L);
             else if (Code < 0)
                 return CallNextHookEx(HookID, Code, W, L);
+
             try
             {
                 if (Global)
@@ -150,7 +157,7 @@ namespace UI_Mimic
                     {
                         KeyDown?.Invoke((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed());
                     }
-                    if (keydownup == -1)
+                    else if (keydownup == -1)
                     {
                         KeyUp?.Invoke((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed());
                     }
