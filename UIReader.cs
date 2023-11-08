@@ -110,15 +110,17 @@ namespace UI_Mimic
         {
             //Check for window within allowed options
             string ActiveWindow = WindowInfo.GetActiveWindowTitle();
-            if(ActiveWindow == null) 
+            if (ActiveWindow == null)
                 return CallNextHookEx(HookID, Code, W, L);
 
+            if (Global)
+            {
+                //Inaccurate Check
+                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any())
+                    return CallNextHookEx(HookID, Code, W, L);
+            }
             //EXACT Check
             else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any())
-                return CallNextHookEx(HookID, Code, W, L);
-
-            //Inaccurate Check
-            else if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any() && Global)
                 return CallNextHookEx(HookID, Code, W, L);
             else if (Code < 0)
                 return CallNextHookEx(HookID, Code, W, L);
@@ -131,18 +133,18 @@ namespace UI_Mimic
 
                     int vkCode = Marshal.ReadInt32(L); //Leser vkCode som er de første 32 bits hvor L peker.
 
-                    if (kEvent != KeyEvents.KeyDown 
-                    && kEvent != KeyEvents.KeyUp 
-                    && kEvent != KeyEvents.SKeyDown 
+                    if (kEvent != KeyEvents.KeyDown
+                    && kEvent != KeyEvents.KeyUp
+                    && kEvent != KeyEvents.SKeyDown
                     && kEvent != KeyEvents.SKeyUp)
                     {
                     }
-                    if (kEvent == KeyEvents.KeyDown 
+                    if (kEvent == KeyEvents.KeyDown
                     || kEvent == KeyEvents.SKeyDown)
                     {
                         KeyDown?.Invoke((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed());
                     }
-                    if (kEvent == KeyEvents.KeyUp 
+                    if (kEvent == KeyEvents.KeyUp
                     || kEvent == KeyEvents.SKeyUp)
                     {
                         KeyUp?.Invoke((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed());
