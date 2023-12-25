@@ -1,11 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using System;
 
-namespace UI_Mimic
-{
+namespace UI_Mimic {
+
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MouseInput
-    {
+    internal struct MouseInput {
         internal int dx;
         internal int dy;
         internal uint mouseData;
@@ -14,8 +13,7 @@ namespace UI_Mimic
         internal IntPtr dwExtraInfo;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct KeyboardInput
-    {
+    internal struct KeyboardInput {
         internal ushort wVk;
         internal ushort wScan;
         internal uint dwFlags;
@@ -23,34 +21,29 @@ namespace UI_Mimic
         internal IntPtr dwExtraInfo;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HardwareInput
-    {
+    internal struct HardwareInput {
         internal uint uMsg;
         internal ushort wParamL;
         internal ushort wParamH;
     }
     [StructLayout(LayoutKind.Explicit)]
-    internal struct InputUnion
-    {
+    internal struct InputUnion {
         [FieldOffset(0)] internal MouseInput mi;
         [FieldOffset(0)] internal KeyboardInput ki;
         [FieldOffset(0)] internal HardwareInput hi;
     }
-    internal struct Input
-    {
+    internal struct Input {
         internal int type;
         internal InputUnion u;
     }
     [Flags]
-    internal enum InputType
-    {
+    internal enum InputType {
         Mouse = 0,
         Keyboard = 1,
         Hardware = 2
     }
     [Flags]
-    internal enum KeyEventF
-    {
+    internal enum KeyEventF {
         KeyDown = 0x0000,
         ExtendedKey = 0x0001,
         KeyUp = 0x0002,
@@ -58,8 +51,7 @@ namespace UI_Mimic
         Scancode = 0x0008
     }
     [Flags]
-    internal enum MouseEventF
-    {
+    internal enum MouseEventF {
         Absolute = 0x8000,
         HWheel = 0x01000,
         Move = 0x0001,

@@ -4,23 +4,20 @@ using System.Windows.Forms;
 using System.Drawing;
 using System;
 
-namespace UI_Mimic
-{
-    public static class UserControl
-    {
-        
+namespace UI_Mimic {
+    public static class UserControl {
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
         [DllImport("user32.dll")]
         private static extern IntPtr GetMessageExtraInfo();
-        
+
         /// <summary>
         /// Move the mouse pointer then click on the spot
         /// </summary>
         /// <param name="mousePosition"></param>
         /// <param name="LeftClick"></param>
-        public static void Mouse_Move_Click(Point NewPosition, bool LeftClick = true)
-        {
+        public static void Mouse_Move_Click(Point NewPosition, bool LeftClick = true) {
             Cursor.Position = NewPosition;
             Input[] MouseAction = new Input[]
             {
@@ -54,8 +51,7 @@ namespace UI_Mimic
         /// Move the Mouse Cursor
         /// </summary>
         /// <param name="point"></param>
-        public static void Mouse_Move(Point NewPosition)
-        {
+        public static void Mouse_Move(Point NewPosition) {
             Input[] MouseAction = new Input[]
             {
                 new Input
@@ -77,8 +73,7 @@ namespace UI_Mimic
         /// <summary>
         /// Click the Mouse Cursor (False for Right Click)
         /// </summary>
-        public static void Mouse_Click(bool LeftClick = true)
-        {
+        public static void Mouse_Click(bool LeftClick = true) {
             Input[] MouseLeft = new Input[] {
             new Input
             {
@@ -110,11 +105,9 @@ namespace UI_Mimic
         /// Types out the provided String
         /// </summary>
         /// <param name="Send"></param>
-        public static void Keyboard_Text(string Send)
-        {
+        public static void Keyboard_Text(string Send) {
             List<Input> inputs = new List<Input>();
-            for (int i = 0; i < Send.Length; i++)
-            {
+            for (int i = 0; i < Send.Length; i++) {
                 inputs.Add(GenerateKeyEvent(CharCodes[Send[i]], false));
                 inputs.Add(GenerateKeyEvent(CharCodes[Send[i]]));
             }
@@ -123,8 +116,7 @@ namespace UI_Mimic
         /// <summary>
         /// Sends the provided Key code
         /// </summary>
-        public static void Keyboard_Code(WinApi.User32.ScanCodes input)
-        {
+        public static void Keyboard_Code(WinApi.User32.ScanCodes input) {
             //WinApi.User32.VirtualKey.RETURN;
             //wScan =  (ushort)WinApi.User32.ScanCodes.RETURN, ///Enter Key Code 0x1C
             Input[] inputs = new Input[]
@@ -164,15 +156,11 @@ namespace UI_Mimic
         }
 
         #region Private Data
-        private static Input GenerateKeyEvent(ushort Code, bool Up = true)
-        {
-            return new Input
-            {
+        private static Input GenerateKeyEvent(ushort Code, bool Up = true) {
+            return new Input {
                 type = (int)InputType.Keyboard,
-                u = new InputUnion
-                {
-                    ki = new KeyboardInput
-                    {
+                u = new InputUnion {
+                    ki = new KeyboardInput {
                         wVk = 0,
                         wScan = Code,
                         dwFlags = (uint)(Up ? KeyEventF.KeyUp : KeyEventF.KeyDown | KeyEventF.Unicode),
