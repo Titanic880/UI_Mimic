@@ -47,6 +47,7 @@ namespace UI_Mimic {
             };
             _ = SendInput((uint)MouseAction.Length, MouseAction, Marshal.SizeOf(typeof(Input)));
         }
+
         /// <summary>
         /// Move the Mouse Cursor
         /// </summary>
@@ -113,6 +114,27 @@ namespace UI_Mimic {
             }
             _ = SendInput((uint)inputs.ToArray().Length, inputs.ToArray(), Marshal.SizeOf(typeof(Input)));
         }
+
+
+        private static Input? InputHeld = null;
+        public static void InputHold(ushort KeyToHold) {
+            if (InputHeld.HasValue) {
+                if (InputHeld.Value.u.ki.dwFlags == 0x0000 || InputHeld.Value.u.ki.dwFlags == 0x0004) {
+                    InputRelease();
+                }
+            }
+            Input ToHold = GenerateKeyEvent(KeyToHold, false);
+            _ = SendInput(1, new Input[] { ToHold }, Marshal.SizeOf(typeof(Input)));
+            InputHeld = ToHold;
+        }
+        public static void InputRelease() {
+            if (InputHeld.HasValue) {
+                Input ToRelease = GenerateKeyEvent(InputHeld.Value.u.ki.wScan, true);
+                _ = SendInput(1, new Input[] { ToRelease }, Marshal.SizeOf(typeof(Input)));
+                InputHeld = ToRelease;
+            }
+        }
+
         /// <summary>
         /// Sends the provided Key code
         /// </summary>

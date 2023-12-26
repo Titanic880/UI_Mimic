@@ -2,7 +2,7 @@
 
 namespace UI_Mimic_Testing {
     [TestClass]
-    public class WindowInfo {
+    public class Test_WindowInfo {
         [TestMethod]
         public void WindowFound() {
             string activeWindow = UI_Mimic.WindowInfo.GetActiveWindowTitle();

@@ -1,6 +1,6 @@
 namespace UI_Mimic_Testing {
     [TestClass]
-    public class UIControl {
+    public class Test_UIControl {
         [TestMethod]
         public void TestMethod1() {
 

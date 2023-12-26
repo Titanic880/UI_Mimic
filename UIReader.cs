@@ -2,8 +2,6 @@
 using System.Windows.Forms;
 using System.Linq;
 using System;
-using WinApi.User32;
-using WinApi.Windows;
 
 namespace UI_Mimic {
     /// <summary>
@@ -135,24 +133,31 @@ namespace UI_Mimic {
                 IsFinalized = true;
             }
         }
-        //Mouse Documentation
-        //https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc
-        [STAThread]
-        private int MouseHookProc(int Code, IntPtr W, IntPtr L) {
+
+        private bool SafetyChecks(int Code) {
             //Check for window within allowed options
             string ActiveWindow = WindowInfo.GetActiveWindowTitle();
             if (ActiveWindow == null || Code < 0) {
-                return CallNextHookEx(HookID, Code, W, L);
+                return false;
             }
             //Inaccurate Check
             if (Global) {
                 if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any()) {
-                    return CallNextHookEx(HookID, Code, W, L);
+                    return false;
                 }
             }
             //EXACT Check
             else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any()) {
-                return CallNextHookEx(HookID, Code, W, L);
+                return false;
+            }
+            return true;
+        }
+        //Mouse Documentation
+        //https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc
+        [STAThread]
+        private int MouseHookProc(int Code, IntPtr W, IntPtr L) {
+            if (!SafetyChecks(Code)) {
+                return CallNextHookEx(HookID,Code,W,L);
             }
 
             try {
@@ -175,7 +180,7 @@ namespace UI_Mimic {
                     ButtonClicked = MouseButtons.Right;
                     break;
                 case MouseEvents.MouseClickRightUp:
-                    ButtonClicked = MouseButtons.Left;
+                    ButtonClicked = MouseButtons.Right;
                     break;
                 case MouseEvents.MouseScrollClick:
                     ButtonClicked = MouseButtons.Middle;
@@ -199,22 +204,7 @@ namespace UI_Mimic {
         [STAThread]
         //The listener that will trigger events
         private int KeybHookProc(int Code, IntPtr W, IntPtr L) {
-            //Check for window within allowed options
-            string ActiveWindow = WindowInfo.GetActiveWindowTitle();
-            if (ActiveWindow == null) {
-                return CallNextHookEx(HookID, Code, W, L);
-            }
-
-            if (Global) {
-                //Inaccurate Check
-                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any()) {
-                    return CallNextHookEx(HookID, Code, W, L);
-                }
-            }
-            //EXACT Check
-            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any()) {
-                return CallNextHookEx(HookID, Code, W, L);
-            } else if (Code < 0) {
+            if (!SafetyChecks(Code)) {
                 return CallNextHookEx(HookID, Code, W, L);
             }
 
@@ -252,7 +242,6 @@ namespace UI_Mimic {
                 OnError?.Invoke(e);
                 //Ignore all errors...
             }
-
             return CallNextHookEx(HookID, Code, W, L);
         }
 
@@ -275,9 +264,6 @@ namespace UI_Mimic {
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(Keys nVirtKey);
-
-
-
         public static bool GetCapslock() {
             return Convert.ToBoolean(GetKeyState(Keys.CapsLock)) & true;
         }
