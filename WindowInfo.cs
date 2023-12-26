@@ -15,14 +15,23 @@ namespace UI_Mimic {
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
-        public static void FocusProcess(string processname) {
+        public static void FocusProcess(string processname, bool AccurateCheck = false) {
+            void Logic(Process window) {
+                //ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+                IntPtr hWnd = window.MainWindowHandle;
+                SetForegroundWindow(hWnd);
+            }
+
             Process[] allitems = Process.GetProcesses();
-            foreach (Process a in allitems)
-                if (a.ProcessName.ToLower().Contains(processname.ToLower())) {
-                    IntPtr hWnd = a.MainWindowHandle;
-                    //ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
-                    SetForegroundWindow(hWnd);
+            foreach (Process a in allitems) {
+                if (AccurateCheck) {
+                    if (a.ProcessName.Equals(processname)) {
+                        Logic(a);
+                    } else if (a.ProcessName.ToLower().Contains(processname.ToLower())) {
+                        Logic(a);
+                    }
                 }
+            }
         }
 
         public static string GetActiveWindowTitle() {
