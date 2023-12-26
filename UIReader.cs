@@ -2,6 +2,8 @@
 using System.Windows.Forms;
 using System.Linq;
 using System;
+using WinApi.User32;
+using WinApi.Windows;
 
 namespace UI_Mimic {
     /// <summary>
@@ -21,10 +23,10 @@ namespace UI_Mimic {
         public event LocalKeyEventHandler KeyUp;
         public event ErrorEventHandler OnError;
 
-        public delegate void LocalMouseEventHandler(object sender);
-        public event LocalMouseEventHandler OnMouseMove;
-        public event LocalMouseEventHandler OnMouseButtonDown;
-        public event LocalMouseEventHandler OnMouseButtonUp;
+        public delegate void LocalMouseMoveHandler(int xPos, int yPos);
+        public event LocalMouseMoveHandler OnMouseMove;
+        public delegate void LocalMouseEventHandler(MouseButtons MouseAction);
+        public event LocalMouseEventHandler OnMouseClick;
 
         public delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
 
@@ -92,7 +94,7 @@ namespace UI_Mimic {
         /// <param name="Global"></param>
         /// <param name="LoggingWindows"></param>
         /// <param name="HookType"></param>
-        internal UIReader(bool Global, string[] LoggingWindows, HookTypePub Hook) {
+        public UIReader(bool Global, string[] LoggingWindows, HookTypePub Hook) {
             this.LoggingWindows = LoggingWindows;
             this.Global = Global;
             int Type;
@@ -133,31 +135,64 @@ namespace UI_Mimic {
                 IsFinalized = true;
             }
         }
+        //Mouse Documentation
+        //https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc
         [STAThread]
         private int MouseHookProc(int Code, IntPtr W, IntPtr L) {
             //Check for window within allowed options
             string ActiveWindow = WindowInfo.GetActiveWindowTitle();
-            if (ActiveWindow == null)
+            if (ActiveWindow == null || Code < 0) {
                 return CallNextHookEx(HookID, Code, W, L);
-
+            }
+            //Inaccurate Check
             if (Global) {
-                //Inaccurate Check
-                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any())
+                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any()) {
                     return CallNextHookEx(HookID, Code, W, L);
+                }
             }
             //EXACT Check
-            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any())
+            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any()) {
                 return CallNextHookEx(HookID, Code, W, L);
-            else if (Code < 0)
-                return CallNextHookEx(HookID, Code, W, L);
+            }
 
             try {
+                MouseButtons ButtonClicked = MouseButtons.None;
+                MouseEvents Event = (MouseEvents)W;
+                //https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct
+                MouseInput input = Marshal.PtrToStructure<MouseInput>(L);
 
-            }catch(Exception e) { 
+                switch (Event) {
+                case MouseEvents.MouseMove:
+                    OnMouseMove(input.dx, input.dy);
+                    return CallNextHookEx(HookID, Code, W, L);
+                case MouseEvents.MouseClickLeftDown:
+                    ButtonClicked = MouseButtons.Left;
+                    break;
+                case MouseEvents.MouseClickLeftUp:
+                    ButtonClicked = MouseButtons.Left;
+                    break;
+                case MouseEvents.MouseClickRightDown:
+                    ButtonClicked = MouseButtons.Right;
+                    break;
+                case MouseEvents.MouseClickRightUp:
+                    ButtonClicked = MouseButtons.Left;
+                    break;
+                case MouseEvents.MouseScrollClick:
+                    ButtonClicked = MouseButtons.Middle;
+                    break;
+                case MouseEvents.MouseScroll:
+                    ButtonClicked = MouseButtons.None;
+                    break;
+                default:
+                    return CallNextHookEx(HookID, Code, W, L);
+                }
+                OnMouseClick(ButtonClicked);
+                //Mouse Data->ScrollDown: 4287102976
+                //Mouse Data->ScrollUp:   7864320
+            } catch (Exception e) {
                 OnError?.Invoke(e);
                 //Dont talk bout no errors :)
             }
-
             return CallNextHookEx(HookID, Code, W, L);
         }
 
@@ -166,19 +201,22 @@ namespace UI_Mimic {
         private int KeybHookProc(int Code, IntPtr W, IntPtr L) {
             //Check for window within allowed options
             string ActiveWindow = WindowInfo.GetActiveWindowTitle();
-            if (ActiveWindow == null)
+            if (ActiveWindow == null) {
                 return CallNextHookEx(HookID, Code, W, L);
+            }
 
             if (Global) {
                 //Inaccurate Check
-                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any())
+                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any()) {
                     return CallNextHookEx(HookID, Code, W, L);
+                }
             }
             //EXACT Check
-            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any())
+            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any()) {
                 return CallNextHookEx(HookID, Code, W, L);
-            else if (Code < 0)
+            } else if (Code < 0) {
                 return CallNextHookEx(HookID, Code, W, L);
+            }
 
             try {
                 if (Global) {
@@ -219,10 +257,15 @@ namespace UI_Mimic {
         }
 
         private enum MouseEvents {
-            MouseMove = 0x0000,
-            MouseClickDown = 0x0001,
-            MouseClickUp = 0x0002
+            MouseMove = 0x0200,
+            MouseClickLeftDown = 0x0201,
+            MouseClickLeftUp = 0x0202,
+            MouseClickRightDown = 0x0204,
+            MouseClickRightUp = 0x0205,
+            MouseScrollClick = 0x0207,
+            MouseScroll = 0x020a
         }
+
         private enum KeyEvents {
             KeyDown = 0x0100,
             KeyUp = 0x0101,
@@ -232,6 +275,8 @@ namespace UI_Mimic {
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(Keys nVirtKey);
+
+
 
         public static bool GetCapslock() {
             return Convert.ToBoolean(GetKeyState(Keys.CapsLock)) & true;
