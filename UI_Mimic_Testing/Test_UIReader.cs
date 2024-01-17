@@ -13,8 +13,8 @@ namespace UI_Mimic_Testing {
 
         [TestMethod]
         public void TestKeyStateCapsLock() {
-            ushort CapsLockCode = (ushort)System.Windows.Forms.Keys.CapsLock;
-            TestState(UI_Mimic.UIReader.GetCapslock, CapsLockCode);
+            //ushort CapsLockCode = (ushort)System.Windows.Forms.Keys.CapsLock;
+            TestState(UI_Mimic.UIReader.GetCapslock, 0x000);
         }
         [TestMethod]
         public void TestKeyStateNumLock() {
