@@ -185,7 +185,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UIReader.cs" />
+    <Compile Include="UIController.cs" />
+    <Compile Include="Windows\UIReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -193,8 +194,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="structures.cs" />
-    <Compile Include="UIControl.cs" />
-    <Compile Include="WindowInfo.cs" />
+    <Compile Include="Windows\UIControl.cs" />
+    <Compile Include="Windows\WindowInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -202,6 +203,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Linux\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

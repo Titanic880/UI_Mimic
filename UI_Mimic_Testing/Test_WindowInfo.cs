@@ -5,7 +5,7 @@ namespace UI_Mimic_Testing {
     public class Test_WindowInfo {
         [TestMethod]
         public void WindowFound() {
-            string activeWindow = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+            string activeWindow = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
             Assert.IsNotNull(activeWindow);
             Assert.AreNotEqual(activeWindow, "");
         }
@@ -27,23 +27,23 @@ namespace UI_Mimic_Testing {
                 Assert.IsNotNull(app2);
 
                 Assert.AreNotSame(FocusAppexe1, FocusAppexe2);
-                string Debug_01 = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+                string Debug_01 = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
                 Assert.AreEqual(Debug_01, FocusAppName2);
 
-                UI_Mimic.WindowInfo.FocusProcess(FocusAppName1,true);
-                string Debug_02 = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+                UI_Mimic.Windows.WindowInfo.FocusProcess(FocusAppName1,true);
+                string Debug_02 = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
                 Assert.AreEqual(Debug_02, FocusAppName1);
 
-                UI_Mimic.WindowInfo.FocusProcess(FocusAppName2, true);
-                string Debug_03 = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+                UI_Mimic.Windows.WindowInfo.FocusProcess(FocusAppName2, true);
+                string Debug_03 = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
                 Assert.AreEqual(Debug_03, FocusAppName2);
 
-                UI_Mimic.WindowInfo.FocusProcess(FocusAppName1, true);
-                string Debug_04 = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+                UI_Mimic.Windows.WindowInfo.FocusProcess(FocusAppName1, true);
+                string Debug_04 = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
                 Assert.AreEqual(Debug_04, FocusAppName1);
 
-                UI_Mimic.WindowInfo.FocusProcess(FocusAppName2, true);
-                string Debug_05 = UI_Mimic.WindowInfo.GetActiveWindowTitle();
+                UI_Mimic.Windows.WindowInfo.FocusProcess(FocusAppName2, true);
+                string Debug_05 = UI_Mimic.Windows.WindowInfo.GetActiveWindowTitle();
                 Assert.AreEqual(Debug_05, FocusAppName2);
             } catch { } finally {
                 //Close the newest 2 of the processes as cleanup
