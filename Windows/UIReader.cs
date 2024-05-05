@@ -12,11 +12,13 @@ namespace UI_Mimic.Windows {
         private readonly IntPtr HookID = IntPtr.Zero;
         private readonly CallbackDelegate TheHookCB = null;
 
-        private event LocalKeyEventHandler KeyDown;
-        private event LocalKeyEventHandler KeyUp;
-        private event ErrorEventHandler OnError;
-        private event LocalMouseMoveHandler OnMouseMove;
-        private event LocalMouseEventHandler OnMouseClick;
+        public event LocalKeyEventHandler KeyDown;
+        public event LocalKeyEventHandler KeyUp;
+        public event ErrorEventHandler OnError;
+        public event LocalMouseMoveHandler OnMouseMove;
+        public event LocalMouseEventHandler OnMouseClick;
+        public event LocalMouseEventDown OnMouseDown;
+        public event LocalMouseEventUp OnMouseUp;
 
         public delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
 
@@ -108,30 +110,34 @@ namespace UI_Mimic.Windows {
                 return CallNextHookEx(HookID, Code, W, L);
             }
 
+            bool ButtonDirection = false;
             try {
                 MouseButtons ButtonClicked = MouseButtons.None;
                 MouseEvents Event = (MouseEvents)W;
                 //https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct
                 MouseInput input = Marshal.PtrToStructure<MouseInput>(L);
-
+                
                 switch (Event) {
                     case MouseEvents.MouseMove:
-                        OnMouseMove(input.dx, input.dy);
+                        OnMouseMove?.Invoke(input.dx, input.dy);
                         return CallNextHookEx(HookID, Code, W, L);
                     case MouseEvents.MouseClickLeftDown:
-                        ButtonClicked = MouseButtons.Left;
+                        ButtonClicked   = MouseButtons.Left;
+                        ButtonDirection = true;
                         break;
                     case MouseEvents.MouseClickLeftUp:
                         ButtonClicked = MouseButtons.Left;
                         break;
                     case MouseEvents.MouseClickRightDown:
-                        ButtonClicked = MouseButtons.Right;
+                        ButtonClicked   = MouseButtons.Right;
+                        ButtonDirection = true;
                         break;
                     case MouseEvents.MouseClickRightUp:
                         ButtonClicked = MouseButtons.Right;
                         break;
                     case MouseEvents.MouseScrollClick:
-                        ButtonClicked = MouseButtons.Middle;
+                        ButtonClicked   = MouseButtons.Middle;
+                        ButtonDirection = true;
                         break;
                     case MouseEvents.MouseScroll:
                         ButtonClicked = MouseButtons.None;
@@ -139,7 +145,14 @@ namespace UI_Mimic.Windows {
                     default:
                         return CallNextHookEx(HookID, Code, W, L);
                 }
-                OnMouseClick(ButtonClicked);
+
+                if (ButtonDirection) {
+                    OnMouseDown?.Invoke(ButtonClicked);
+                }
+                else {
+                    OnMouseUp?.Invoke(ButtonClicked);
+                }
+                OnMouseClick?.Invoke(ButtonClicked);
                 //Mouse Data->ScrollDown: 4287102976
                 //Mouse Data->ScrollUp:   7864320
             } catch (Exception e) {
