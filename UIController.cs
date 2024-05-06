@@ -1,5 +1,4 @@
-﻿using static UI_Mimic.Windows.UIReader;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System;
 
 namespace UI_Mimic {
@@ -19,7 +18,7 @@ namespace UI_Mimic {
             throw new NotImplementedException();
         }
 
-        public UIController(bool Global, string[] LoggingWindows, HookTypePub Hook = HookTypePub.Keyboard) {
+        protected UIController(bool Global, string[] LoggingWindows) {
             this.Global = Global;
             this.LoggingWindows = LoggingWindows;
         }

@@ -9,9 +9,11 @@ namespace UI_Mimic.Windows {
     /// https://stackoverflow.com/questions/34281223/c-sharp-hook-global-keyboard-events-net-4-0
     /// </summary>
     public class UIReader : UIController {
-        private readonly IntPtr HookID = IntPtr.Zero;
-        private readonly CallbackDelegate TheHookCB = null;
-
+        private IntPtr _mouseHookId = IntPtr.Zero;
+        private IntPtr _keyboardHookId = IntPtr.Zero;
+        
+        private CallbackDelegate MouseHook = null;
+        private CallbackDelegate KeyboardHook = null;
         public event LocalKeyEventHandler KeyDown;
         public event LocalKeyEventHandler KeyUp;
         public event ErrorEventHandler OnError;
@@ -20,12 +22,11 @@ namespace UI_Mimic.Windows {
         public event LocalMouseEventDown OnMouseDown;
         public event LocalMouseEventUp OnMouseUp;
 
-        public delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
+        private delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
 
         [DllImport("user32", CallingConvention = CallingConvention.StdCall)]
         private static extern IntPtr SetWindowsHookEx(HookType idHook, CallbackDelegate lpfn, IntPtr hInstance, int threadId);
-
-
+        
         [DllImport("user32", CallingConvention = CallingConvention.StdCall)]
         private static extern bool UnhookWindowsHookEx(IntPtr idHook);
 
@@ -37,51 +38,82 @@ namespace UI_Mimic.Windows {
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr LoadLibrary(string lpFileName);
-
-        //Only Expose the types of hooks DLL is setup for
-
-
         #region Construction/Deconstruction
-        /// <summary>
-        /// Primary Constructor (Mouse Functionality currently in testing)
-        /// </summary>
-        /// <param name="Global"></param>
-        /// <param name="LoggingWindows"></param>
-        /// <param name="HookType"></param>
-        public UIReader(bool Global, string[] LoggingWindows, HookTypePub Hook = HookTypePub.Keyboard) :
-            base(Global, LoggingWindows, Hook) {
-            int Type;
-            if (Hook == HookTypePub.Keyboard) {
-                TheHookCB = new CallbackDelegate(KeybHookProc);
-                Type = ((int)HookType.WH_KEYBOARD);
-            } else {
-                TheHookCB = new CallbackDelegate(MouseHookProc);
-                Type = ((int)HookType.WH_MOUSE);
-            }
+        public UIReader(bool Global, string[] LoggingWindows) :
+            base(Global, LoggingWindows) {
 
-            if (Global) {
-                IntPtr hInstance = LoadLibrary("User32");
-                HookID = SetWindowsHookEx((HookType)Hook, TheHookCB,
-                    hInstance,
-                    0);
+        }
+
+        public bool GenerateHook(HookTypePub PubHook) {
+            if (LoggingWindows.Length < 1) return false;
+
+            int Type;
+            if (PubHook == HookTypePub.Keyboard) {
+                if(KeyboardHook != null) {
+                    return false;
+                }
+                KeyboardHook = new CallbackDelegate(KeybHookProc);
+                Type      = (int)HookType.WH_KEYBOARD;
+                _keyboardHookId = ConnectHook(KeyboardHook);
             } else {
-                HookID = SetWindowsHookEx((HookType)Type, TheHookCB,
-                    IntPtr.Zero,
-                    GetCurrentThreadId());
+                if (MouseHook != null) {
+                    return false;
+                }
+                MouseHook = new CallbackDelegate(MouseHookProc);
+                Type      = (int)HookType.WH_MOUSE;
+                _mouseHookId = ConnectHook(MouseHook);
+            }
+            
+            return true;
+            IntPtr ConnectHook(CallbackDelegate callback) {
+                if (Global) {
+                    IntPtr hInstance = LoadLibrary("User32");
+                    return SetWindowsHookEx((HookType)PubHook, callback,
+                        hInstance,
+                        0);
+                } else {
+                    return SetWindowsHookEx((HookType)Type, callback,
+                        IntPtr.Zero,
+                        GetCurrentThreadId());
+                }
             }
         }
+        public bool DisconnectHook(HookTypePub PubHook) {
+            if (PubHook == HookTypePub.Keyboard) {
+                if (KeyboardHook == null) { //Disconnecting an empty hook should still succeed?
+                    return true;
+                }
+                if(UnhookWindowsHookEx(_keyboardHookId) is false) {
+                    return false;
+                }
+                KeyboardHook = null;
+                _keyboardHookId = IntPtr.Zero;
+            } else {
+                if (MouseHook == null) {
+                    return true;
+                }
+                if(UnhookWindowsHookEx(_mouseHookId) is false){
+                    return false;
+                }
+                MouseHook = null;
+                _mouseHookId = IntPtr.Zero;
+            }
+            return true;
+        }
+
+        
         bool IsFinalized = false;
         ~UIReader() {
-            if (!IsFinalized) {
-                UnhookWindowsHookEx(HookID);
-                IsFinalized = true;
-            }
+            if (IsFinalized) return;
+            UnhookWindowsHookEx(_mouseHookId);
+            UnhookWindowsHookEx(_keyboardHookId);
+            IsFinalized = true;
         }
         public new void Dispose() {
-            if (!IsFinalized) {
-                UnhookWindowsHookEx(HookID);
-                IsFinalized = true;
-            }
+            if (IsFinalized) return;
+            UnhookWindowsHookEx(_mouseHookId);
+            UnhookWindowsHookEx(_keyboardHookId);
+            IsFinalized = true;
         }
         #endregion Construction/Deconstruction
         private bool SafetyChecks(int Code) {
@@ -92,12 +124,12 @@ namespace UI_Mimic.Windows {
             }
             //Inaccurate Check
             if (Global) {
-                if (!LoggingWindows.Where(x => ActiveWindow.Contains(x)).Any()) {
+                if (!LoggingWindows.Any(x => ActiveWindow.Contains(x))) {
                     return false;
                 }
             }
             //EXACT Check
-            else if (!LoggingWindows.Where(x => x.Contains(ActiveWindow)).Any()) {
+            else if (!LoggingWindows.Any(x => x.Contains(ActiveWindow))) {
                 return false;
             }
             return true;
@@ -107,7 +139,7 @@ namespace UI_Mimic.Windows {
         [STAThread]
         private int MouseHookProc(int Code, IntPtr W, IntPtr L) {
             if (!SafetyChecks(Code)) {
-                return CallNextHookEx(HookID, Code, W, L);
+                return CallNextHookEx(_mouseHookId, Code, W, L);
             }
 
             bool ButtonDirection = false;
@@ -120,7 +152,7 @@ namespace UI_Mimic.Windows {
                 switch (Event) {
                     case MouseEvents.MouseMove:
                         OnMouseMove?.Invoke(input.dx, input.dy);
-                        return CallNextHookEx(HookID, Code, W, L);
+                        return CallNextHookEx(_mouseHookId, Code, W, L);
                     case MouseEvents.MouseClickLeftDown:
                         ButtonClicked   = MouseButtons.Left;
                         ButtonDirection = true;
@@ -143,7 +175,7 @@ namespace UI_Mimic.Windows {
                         ButtonClicked = MouseButtons.None;
                         break;
                     default:
-                        return CallNextHookEx(HookID, Code, W, L);
+                        return CallNextHookEx(_mouseHookId, Code, W, L);
                 }
 
                 if (ButtonDirection) {
@@ -159,14 +191,14 @@ namespace UI_Mimic.Windows {
                 OnError?.Invoke(e);
                 //Dont talk bout no errors :)
             }
-            return CallNextHookEx(HookID, Code, W, L);
+            return CallNextHookEx(_mouseHookId, Code, W, L);
         }
 
         [STAThread]
         //The listener that will trigger events
         private int KeybHookProc(int Code, IntPtr W, IntPtr L) {
             if (!SafetyChecks(Code)) {
-                return CallNextHookEx(HookID, Code, W, L);
+                return CallNextHookEx(_keyboardHookId, Code, W, L);
             }
 
             try {
@@ -189,9 +221,7 @@ namespace UI_Mimic.Windows {
                         KeyUp?.Invoke((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     }
                 } else if (Code == 3) {
-                    IntPtr ptr = IntPtr.Zero;
-
-                    int keydownup = L.ToInt32() >> 30;
+                    int keydownup = L.ToInt32() >> 30;  //Magic Bitshift
                     if (keydownup == 0) {
                         KeyDown?.Invoke((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     } else if (keydownup == -1) {
@@ -202,7 +232,7 @@ namespace UI_Mimic.Windows {
                 //Pass Error upwards to error handling.
                 OnError?.Invoke(e);
             }
-            return CallNextHookEx(HookID, Code, W, L);
+            return CallNextHookEx(_keyboardHookId, Code, W, L);
         }
         #region EventEnums
         private enum MouseEvents {
@@ -220,7 +250,7 @@ namespace UI_Mimic.Windows {
             SKeyDown = 0x0104,
             SKeyUp = 0x0105
         }
-        internal enum HookType : int {
+        private enum HookType : int {
             WH_JOURNALRECORD = 0,
             WH_JOURNALPLAYBACK = 1,
             WH_KEYBOARD = 2,
@@ -239,7 +269,7 @@ namespace UI_Mimic.Windows {
         }
         public enum HookTypePub {
             Keyboard = HookType.WH_KEYBOARD_LL,
-            Mouse = HookType.WH_MOUSE_LL,   //NEW ADDITION: NOT FOR PUBLIC RELEASE YET
+            Mouse = HookType.WH_MOUSE_LL
         }
         #endregion EventEnums
         #region KeyStates
