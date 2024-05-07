@@ -136,7 +136,7 @@ namespace UI_Mimic.Windows {
         }
         //Mouse Documentation
         //https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc
-        [STAThread]
+        [MTAThread]
         private int MouseHookProc(int Code, IntPtr W, IntPtr L) {
             if (!SafetyChecks(Code)) {
                 return CallNextHookEx(_mouseHookId, Code, W, L);
@@ -194,7 +194,7 @@ namespace UI_Mimic.Windows {
             return CallNextHookEx(_mouseHookId, Code, W, L);
         }
 
-        [STAThread]
+        [MTAThread]
         //The listener that will trigger events
         private int KeybHookProc(int Code, IntPtr W, IntPtr L) {
             if (!SafetyChecks(Code)) {
