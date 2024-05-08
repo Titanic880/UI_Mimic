@@ -185,6 +185,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Linux\UIControl.cs" />
+    <Compile Include="Linux\UIReader.cs" />
     <Compile Include="UIController.cs" />
     <Compile Include="Windows\UIReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -204,8 +206,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Linux\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
