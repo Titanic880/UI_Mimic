@@ -9,20 +9,6 @@ namespace UI_Mimic.Windows {
     /// https://stackoverflow.com/questions/34281223/c-sharp-hook-global-keyboard-events-net-4-0
     /// </summary>
     public class UIReader : UIController {
-        private IntPtr _mouseHookId = IntPtr.Zero;
-        private IntPtr _keyboardHookId = IntPtr.Zero;
-        
-        private CallbackDelegate MouseHook = null;
-        private CallbackDelegate KeyboardHook = null;
-        public event LocalKeyEventHandler KeyDown;
-        public event LocalKeyEventHandler KeyUp;
-        public event ErrorEventHandler OnError;
-        public event LocalMouseMoveHandler OnMouseMove;
-        public event LocalMouseEventHandler OnMouseClick;
-        public event LocalMouseEventDown OnMouseDown;
-        public event LocalMouseEventUp OnMouseUp;
-
-        private delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
 
         [DllImport("user32", CallingConvention = CallingConvention.StdCall)]
         private static extern IntPtr SetWindowsHookEx(HookType idHook, CallbackDelegate lpfn, IntPtr hInstance, int threadId);
@@ -41,7 +27,6 @@ namespace UI_Mimic.Windows {
         #region Construction/Deconstruction
         public UIReader(bool Global, string[] LoggingWindows) :
             base(Global, LoggingWindows) {
-
         }
 
         public bool GenerateHook(HookTypePub PubHook) {
@@ -151,7 +136,7 @@ namespace UI_Mimic.Windows {
                 
                 switch (Event) {
                     case MouseEvents.MouseMove:
-                        OnMouseMove?.Invoke(input.dx, input.dy);
+                        TriggerOnMouseMove(input.dx, input.dy);
                         return CallNextHookEx(_mouseHookId, Code, W, L);
                     case MouseEvents.MouseClickLeftDown:
                         ButtonClicked   = MouseButtons.Left;
@@ -179,16 +164,16 @@ namespace UI_Mimic.Windows {
                 }
 
                 if (ButtonDirection) {
-                    OnMouseDown?.Invoke(ButtonClicked);
+                    TriggerOnMouseDown(ButtonClicked);
                 }
                 else {
-                    OnMouseUp?.Invoke(ButtonClicked);
+                    TriggerOnMouseUp(ButtonClicked);
                 }
-                OnMouseClick?.Invoke(ButtonClicked);
+                TriggerOnMouseClick(ButtonClicked);
                 //Mouse Data->ScrollDown: 4287102976
                 //Mouse Data->ScrollUp:   7864320
             } catch (Exception e) {
-                OnError?.Invoke(e);
+                TriggerOnError(e);
                 //Dont talk bout no errors :)
             }
             return CallNextHookEx(_mouseHookId, Code, W, L);
@@ -214,23 +199,23 @@ namespace UI_Mimic.Windows {
                     }
                     if (kEvent == KeyEvents.KeyDown
                     || kEvent == KeyEvents.SKeyDown) {
-                        KeyDown?.Invoke((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
+                        TriggerKeyDown((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     }
                     if (kEvent == KeyEvents.KeyUp
                     || kEvent == KeyEvents.SKeyUp) {
-                        KeyUp?.Invoke((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
+                        TriggerKeyUp((Keys)vkCode, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     }
                 } else if (Code == 3) {
                     int keydownup = L.ToInt32() >> 30;  //Magic Bitshift
                     if (keydownup == 0) {
-                        KeyDown?.Invoke((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
+                        TriggerKeyDown((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     } else if (keydownup == -1) {
-                        KeyUp?.Invoke((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
+                        TriggerKeyUp((Keys)W, GetShiftPressed(), GetCtrlPressed(), GetAltPressed(), GetHomePressed());
                     }
                 }
             } catch (Exception e) {
                 //Pass Error upwards to error handling.
-                OnError?.Invoke(e);
+                TriggerOnError(e);
             }
             return CallNextHookEx(_keyboardHookId, Code, W, L);
         }
