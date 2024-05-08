@@ -1,15 +1,7 @@
 ﻿namespace UI_Mimic.Linux {
-    internal class UIReader : UIController {
-
-        private event LocalKeyEventHandler KeyDown;
-        private event LocalKeyEventHandler KeyUp;
-        private event ErrorEventHandler OnError;
-        private event LocalMouseMoveHandler OnMouseMove;
-        private event LocalMouseEventHandler OnMouseClick;
-
-
-        public UIReader(bool Global, string[] LoggingWindows, Windows.UIReader.HookTypePub Hook = Windows.UIReader.HookTypePub.Keyboard) :
-            base(Global, LoggingWindows, Hook) {
+    internal class UIReader : InputReader {
+        public UIReader(bool Global, string[] LoggingWindows) :
+            base(Global, LoggingWindows) {
 
         }
 

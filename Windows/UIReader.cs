@@ -8,7 +8,7 @@ namespace UI_Mimic.Windows {
     /// Taken and modified for use from this post.
     /// https://stackoverflow.com/questions/34281223/c-sharp-hook-global-keyboard-events-net-4-0
     /// </summary>
-    public class UIReader : UIController {
+    internal class UIReader : InputReader {
 
         [DllImport("user32", CallingConvention = CallingConvention.StdCall)]
         private static extern IntPtr SetWindowsHookEx(HookType idHook, CallbackDelegate lpfn, IntPtr hInstance, int threadId);
@@ -29,7 +29,7 @@ namespace UI_Mimic.Windows {
             base(Global, LoggingWindows) {
         }
 
-        public bool GenerateHook(HookTypePub PubHook) {
+        public override bool GenerateHook(HookTypePub PubHook) {
             if (LoggingWindows.Length < 1) return false;
 
             int Type;
@@ -99,6 +99,7 @@ namespace UI_Mimic.Windows {
             UnhookWindowsHookEx(_mouseHookId);
             UnhookWindowsHookEx(_keyboardHookId);
             IsFinalized = true;
+            base.Dispose();
         }
         #endregion Construction/Deconstruction
         private bool SafetyChecks(int Code) {
@@ -235,27 +236,8 @@ namespace UI_Mimic.Windows {
             SKeyDown = 0x0104,
             SKeyUp = 0x0105
         }
-        private enum HookType : int {
-            WH_JOURNALRECORD = 0,
-            WH_JOURNALPLAYBACK = 1,
-            WH_KEYBOARD = 2,
-            WH_GETMESSAGE = 3,
-            WH_CALLWNDPROC = 4,
-            WH_CBT = 5,
-            WH_SYSMSGFILTER = 6,
-            WH_MOUSE = 7,
-            WH_HARDWARE = 8,
-            WH_DEBUG = 9,
-            WH_SHELL = 10,
-            WH_FOREGROUNDIDLE = 11,
-            WH_CALLWNDPROCRET = 12,
-            WH_KEYBOARD_LL = 13,
-            WH_MOUSE_LL = 14
-        }
-        public enum HookTypePub {
-            Keyboard = HookType.WH_KEYBOARD_LL,
-            Mouse = HookType.WH_MOUSE_LL
-        }
+        
+        
         #endregion EventEnums
         #region KeyStates
         [DllImport("user32.dll")]
