@@ -44,7 +44,7 @@ namespace UI_Mimic.Windows {
             Input[] inputs = Builder_MouseInput(LeftClick: LeftClick);
             _ = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
         }
-        private static Input[] Builder_MouseInput(bool MoveOnly = false, bool LeftClick = true) {
+        private static Input[] Builder_MouseInput(bool LeftClick = true) {
             Input[] ret = new Input[2];
             ret[0] = new Input {
                 type = (int)InputType.Mouse,

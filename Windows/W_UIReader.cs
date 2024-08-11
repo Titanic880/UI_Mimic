@@ -217,7 +217,7 @@ namespace UI_Mimic.Windows {
             }
             return CallNextHookEx(_keyboardHookId, Code, W, L);
         }
-        [MTAThread]
+        /*[MTAThread]
         private int GamepadHookProc(int Code, IntPtr W, IntPtr L) {
             if (SafetyChecks(Code) is false) {
                 return CallNextHookEx(_mouseHookId, Code,W,L);
@@ -226,7 +226,7 @@ namespace UI_Mimic.Windows {
 
 
             return CallNextHookEx(_mouseHookId, Code, W, L);
-        }
+        }*/
         
         #region EventEnums
         private enum MouseEvents {

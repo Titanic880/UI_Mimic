@@ -47,7 +47,7 @@ namespace UI_Mimic {
         protected InputReader(bool Global, string[] LoggingWindows) {
             this.Global = Global;
             this.LoggingWindows = LoggingWindows;
-        }
+        }/*
         private static InputReader HookBuilder(HookTypePub typePub, string[] AllowedWindows, bool global=true) {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return new W_UIReader(global, AllowedWindows);
@@ -57,7 +57,7 @@ namespace UI_Mimic {
                 //return new L_UIReader(global,AllowedWindows);
             }
             throw new NotImplementedException("OSX is not supported.");
-        }
+        }*/
         public virtual bool GenerateHook(HookTypePub typePub) {
             /*
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
