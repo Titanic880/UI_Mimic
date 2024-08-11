@@ -4,10 +4,7 @@ using System.Text;
 using System;
 
 namespace UI_Mimic.Windows {
-    public static class WindowInfo {
-        //[DllImport("user32.dll")]
-        //private static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
-        //private const int SW_RESTORE = 9;
+    public static class W_WindowInfo {
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr WindowHandle);
         [DllImport("user32.dll")]
@@ -17,18 +14,23 @@ namespace UI_Mimic.Windows {
 
         public static void FocusProcess(string processname, bool AccurateCheck = false) {
             void Logic(Process window) {
-                //ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
                 IntPtr hWnd = window.MainWindowHandle;
                 SetForegroundWindow(hWnd);
             }
 
+            //Cannot do inaccurate check with this, so we use below method instead.
+            //Process[] processes = Process.GetProcessesByName(processname);
+
             Process[] allitems = Process.GetProcesses();
+            
             foreach (Process a in allitems) {
                 if (AccurateCheck) {
                     if (a.ProcessName.Equals(processname)) {
                         Logic(a);
+                        return;
                     } else if (a.ProcessName.ToLower().Contains(processname.ToLower())) {
                         Logic(a);
+                        return;
                     }
                 }
             }

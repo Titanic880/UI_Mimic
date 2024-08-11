@@ -1,6 +1,8 @@
-﻿using System.Windows.Forms;
+﻿using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using System;
-using System.Runtime.InteropServices;
+using UI_Mimic.Windows;
+using UI_Mimic.Linux;
 
 namespace UI_Mimic {
     public abstract class InputReader : IDisposable {
@@ -15,6 +17,7 @@ namespace UI_Mimic {
         protected CallbackDelegate KeyboardHook = null;
 
         protected delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
+
 
         public delegate void ErrorEventHandler(Exception e);
         public delegate void LocalKeyEventHandler(Keys key, bool Shift, bool Ctrl, bool Alt, bool Home);
@@ -45,11 +48,30 @@ namespace UI_Mimic {
             this.Global = Global;
             this.LoggingWindows = LoggingWindows;
         }
-
+        private static InputReader HookBuilder(HookTypePub typePub, string[] AllowedWindows, bool global=true) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return new W_UIReader(global, AllowedWindows);
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                //Currently unsupported.
+                throw new NotImplementedException("Linux is not supported currently.");
+                //return new L_UIReader(global,AllowedWindows);
+            }
+            throw new NotImplementedException("OSX is not supported.");
+        }
         public virtual bool GenerateHook(HookTypePub typePub) {
+            /*
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+
+
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                //Currently unsupported.
+                return false;
+            }*/
             return false;
         }
-
+        public virtual bool DisconnectHook(HookTypePub typePub) {
+            return false;
+        }
         /// <summary>
         /// Returns a new implementation of the InputReader class based on operating system
         /// </summary>
@@ -58,19 +80,15 @@ namespace UI_Mimic {
         /// <returns></returns>
         public static InputReader ReaderFactory(bool Global, string[] AllowedWindows) {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                return new Windows.UIReader(Global, AllowedWindows);
+                return new Windows.W_UIReader(Global, AllowedWindows);
             } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
 #if DEBUG
-                return new Linux.UIReader(Global, AllowedWindows);
+                return new Linux.L_UIReader(Global, AllowedWindows);
 #endif
                 throw new NotSupportedException("Linux Support is WIP");
             } else {
                 throw new NotSupportedException("Operating system you are running currently does not support this project.");
             }
         }
-    }
-    public enum HookTypePub {
-        Keyboard = HookType.WH_KEYBOARD_LL,
-        Mouse = HookType.WH_MOUSE_LL
     }
 }
