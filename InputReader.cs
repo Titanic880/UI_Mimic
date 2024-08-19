@@ -73,6 +73,21 @@ namespace UI_Mimic {
             return false;
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public virtual byte GetHookState() {
+            byte ret = 0x0;
+            if (_keyboardHookId != IntPtr.Zero) {
+                ret ++;
+            }
+            if(_mouseHookId != IntPtr.Zero) {
+                ret += 16;
+            }
+            return ret;
+        }
+
+        /// <summary>
         /// Returns a new implementation of the InputReader class based on operating system
         /// </summary>
         /// <param name="Global"></param>
