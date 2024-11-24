@@ -77,7 +77,7 @@ namespace UI_Mimic {
         /// </summary>
         /// <returns></returns>
         public virtual byte GetHookState() {
-            byte ret = 0x0;
+            byte ret = 0;
             if (_keyboardHookId != IntPtr.Zero) {
                 ret ++;
             }
