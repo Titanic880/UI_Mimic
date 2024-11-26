@@ -1,14 +1,37 @@
 ﻿using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System;
-using WinApi.User32;
 
 namespace UI_Mimic {
     public enum HookTypePub {
         Keyboard = HookType.WH_KEYBOARD_LL,
-        Mouse = HookType.WH_MOUSE_LL
+        Mouse = HookType.WH_MOUSE_LL,
+        Debug_Feature_01_Replacement = HookType.WH_KEYBOARD_LL | HookType.WH_MOUSE_LL
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Debug_Feature_01_MultiTypeStorage {
+        internal readonly int Debug_TrueValue;
+        internal KeyEvents KeyEvent;
+        internal MouseEvents MouseEvent;
+
+        public Debug_Feature_01_MultiTypeStorage(int value) {
+            Debug_TrueValue = value;
+
+            //Check to see if value falls under key event or mouse event then generate the events
+            if(value <= (int)KeyEvents.KeyDown && value >= (int)KeyEvents.SKeyUp) {
+                KeyEvent = (KeyEvents)value;
+                MouseEvent = MouseEvents.None;
+            }else if (value <= (int)MouseEvents.MouseMove && value >= (int)MouseEvents.MouseScroll) {
+                KeyEvent = KeyEvents.None;
+                MouseEvent = (MouseEvents)value;
+            } else {
+                Debug_TrueValue = 0x0000;
+                KeyEvent = KeyEvents.None;
+                MouseEvent = MouseEvents.None;
+            }
+        }
+    }
     [StructLayout(LayoutKind.Sequential)]
     internal struct MouseInput {
         internal int dx;
@@ -73,6 +96,25 @@ namespace UI_Mimic {
         Wheel = 0x0800,
         XDown = 0x0080,
         XUp = 0x0100
+    }
+    [Flags]
+    internal enum MouseEvents {
+        None = 0x0000,
+        MouseMove = 0x0200,
+        MouseClickLeftDown = 0x0201,
+        MouseClickLeftUp = 0x0202,
+        MouseClickRightDown = 0x0204,
+        MouseClickRightUp = 0x0205,
+        MouseScrollClick = 0x0207,
+        MouseScroll = 0x020a
+    }
+    [Flags]
+    internal enum KeyEvents {
+        None = 0x0000,
+        KeyDown = 0x0100,
+        KeyUp = 0x0101,
+        SKeyDown = 0x0104,
+        SKeyUp = 0x0105
     }
     internal enum HookType : int {
         WH_JOURNALRECORD = 0,

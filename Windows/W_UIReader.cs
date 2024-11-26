@@ -40,13 +40,24 @@ namespace UI_Mimic.Windows {
                 KeyboardHook = new CallbackDelegate(KeybHookProc);
                 Type = (int)HookType.WH_KEYBOARD;
                 _keyboardHookId = ConnectHook(KeyboardHook);
-            } else {
+            } else if (PubHook == HookTypePub.Mouse){
                 if (MouseHook != null) {
                     return false;
                 }
                 MouseHook = new CallbackDelegate(MouseHookProc);
                 Type = (int)HookType.WH_MOUSE;
                 _mouseHookId = ConnectHook(MouseHook);
+            }
+            else if(PubHook == HookTypePub.Debug_Feature_01_Replacement) {
+                //Checked seperately due to how C# doesnt like checking null & length at same time (Null arr will throw error on length check)
+                if(Debug_Feature_01_Replacement_CBD == null) {
+                    return false;
+                }
+                if(Debug_Feature_01_Replacement_CBD.Length != 2 || Debug_Feature_01_Replacement_CBD[0] != null || Debug_Feature_01_Replacement_CBD[1] != null) {
+                    return false;
+                }
+            } else {
+                return false;
             }
 
             return true;
@@ -100,6 +111,11 @@ namespace UI_Mimic.Windows {
             base.Dispose();
         }
         #endregion Construction/Deconstruction
+        /// <summary>
+        /// Checks Global Allowed AND Window is in the approved list
+        /// </summary>
+        /// <param name="Code"></param>
+        /// <returns></returns>
         private bool SafetyChecks(int Code) {
             //Check for window within allowed options
             string ActiveWindow = W_WindowInfo.GetActiveWindowTitle();
@@ -178,7 +194,6 @@ namespace UI_Mimic.Windows {
             return CallNextHookEx(_mouseHookId, Code, EventPtr, InputPtr);
         }
         [MTAThread]
-        //The listener that will trigger events
         private int KeybHookProc(int Code, IntPtr W, IntPtr L) {
             if (SafetyChecks(Code) is false) {
                 return CallNextHookEx(_keyboardHookId, Code, W, L);
@@ -217,6 +232,18 @@ namespace UI_Mimic.Windows {
             }
             return CallNextHookEx(_keyboardHookId, Code, W, L);
         }
+
+        [MTAThread]
+        private int ReplacementHookProc(int Code, IntPtr EventPtr, IntPtr InputPtr) {
+            if (SafetyChecks(Code) == false || Debug_Feature_01_Replacement_Target.Debug_TrueValue == default || Debug_Feature_01_Replacement_Replace.Debug_TrueValue == default) {
+                return CallNextHookEx(_keyboardHookId, Code, EventPtr, InputPtr);
+            }
+            
+
+
+            return CallNextHookEx(_keyboardHookId, Code, EventPtr, InputPtr);
+        }
+
         /*[MTAThread]
         private int GamepadHookProc(int Code, IntPtr W, IntPtr L) {
             if (SafetyChecks(Code) is false) {
@@ -227,24 +254,6 @@ namespace UI_Mimic.Windows {
 
             return CallNextHookEx(_mouseHookId, Code, W, L);
         }*/
-        
-        #region EventEnums
-        private enum MouseEvents {
-            MouseMove = 0x0200,
-            MouseClickLeftDown = 0x0201,
-            MouseClickLeftUp = 0x0202,
-            MouseClickRightDown = 0x0204,
-            MouseClickRightUp = 0x0205,
-            MouseScrollClick = 0x0207,
-            MouseScroll = 0x020a
-        }
-        private enum KeyEvents {
-            KeyDown = 0x0100,
-            KeyUp = 0x0101,
-            SKeyDown = 0x0104,
-            SKeyUp = 0x0105
-        }
-        #endregion EventEnums
         #region KeyStates
         [DllImport("user32.dll")]
         private static extern short GetKeyState(Keys nVirtKey);

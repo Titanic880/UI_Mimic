@@ -1,23 +1,26 @@
 ﻿using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
-using UI_Mimic.Windows;
-using UI_Mimic.Linux;
 
 namespace UI_Mimic {
     public abstract class InputReader : IDisposable {
 
         protected readonly bool Global = false;
         protected readonly string[] LoggingWindows;
+        //These are exclusively 1 of 2 objects, Extensive checks need to be done prior to using them
+        //(Switch these to struct of MouseAction & Keys ?)
+        protected Debug_Feature_01_MultiTypeStorage Debug_Feature_01_Replacement_Target;   //Item to look for to replace
+        protected Debug_Feature_01_MultiTypeStorage Debug_Feature_01_Replacement_Replace;  //new item to replace it
 
         protected IntPtr _mouseHookId = IntPtr.Zero;
         protected IntPtr _keyboardHookId = IntPtr.Zero;
+        protected IntPtr[] _Debug_Feature_01_Replacement_IntPtr = new IntPtr[2];
 
         protected CallbackDelegate MouseHook = null;
         protected CallbackDelegate KeyboardHook = null;
+        protected CallbackDelegate[] Debug_Feature_01_Replacement_CBD = new CallbackDelegate[2];
 
         protected delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
-
 
         public delegate void ErrorEventHandler(Exception e);
         public delegate void LocalKeyEventHandler(Keys key, bool Shift, bool Ctrl, bool Alt, bool Home);
@@ -58,6 +61,7 @@ namespace UI_Mimic {
             }
             throw new NotImplementedException("OSX is not supported.");
         }*/
+
         public virtual bool GenerateHook(HookTypePub typePub) {
             /*
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
@@ -93,7 +97,7 @@ namespace UI_Mimic {
         /// <param name="Global"></param>
         /// <param name="AllowedWindows"></param>
         /// <returns></returns>
-        public static InputReader ReaderFactory(bool Global, string[] AllowedWindows) {
+        public static InputReader GetInputReader(bool Global, string[] AllowedWindows) {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return new Windows.W_UIReader(Global, AllowedWindows);
             } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
