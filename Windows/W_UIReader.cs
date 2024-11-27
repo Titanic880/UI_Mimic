@@ -38,14 +38,14 @@ namespace UI_Mimic.Windows {
                     return false;
                 }
                 KeyboardHook = new CallbackDelegate(KeybHookProc);
-                Type = (int)HookType.WH_KEYBOARD;
+                Type = (int)HookTypePub.Keyboard;
                 _keyboardHookId = ConnectHook(KeyboardHook);
             } else if (PubHook == HookTypePub.Mouse){
                 if (MouseHook != null) {
                     return false;
                 }
                 MouseHook = new CallbackDelegate(MouseHookProc);
-                Type = (int)HookType.WH_MOUSE;
+                Type = (int)HookTypePub.Mouse;
                 _mouseHookId = ConnectHook(MouseHook);
             }
             else if(PubHook == HookTypePub.Debug_Feature_01_Replacement) {
@@ -53,9 +53,17 @@ namespace UI_Mimic.Windows {
                 if(Debug_Feature_01_Replacement_CBD == null) {
                     return false;
                 }
-                if(Debug_Feature_01_Replacement_CBD.Length != 2 || Debug_Feature_01_Replacement_CBD[0] != null || Debug_Feature_01_Replacement_CBD[1] != null) {
+                if(Debug_Feature_01_Replacement_CBD != null) {
                     return false;
                 }
+
+                Debug_Feature_01_Replacement_CBD = new CallbackDelegate(ReplacementHookProc);
+                Type = (int)HookType.WH_KEYBOARD;
+                _Debug_Feature_01_Replacement_IntPtr[0] = ConnectHook(Debug_Feature_01_Replacement_CBD);
+                Type = (int)HookTypePub.Mouse;
+                _Debug_Feature_01_Replacement_IntPtr[1] = ConnectHook(Debug_Feature_01_Replacement_CBD);
+
+                return false;//Switch to True
             } else {
                 return false;
             }
@@ -64,7 +72,7 @@ namespace UI_Mimic.Windows {
             IntPtr ConnectHook(CallbackDelegate callback) {
                 if (Global) {
                     IntPtr hInstance = LoadLibrary("User32");
-                    return SetWindowsHookEx((HookType)PubHook, callback,
+                    return SetWindowsHookEx((HookType)Type, callback,
                         hInstance,
                         0);
                 } else {
@@ -84,7 +92,7 @@ namespace UI_Mimic.Windows {
                 }
                 KeyboardHook = null;
                 _keyboardHookId = IntPtr.Zero;
-            } else {
+            } else if (PubHook == HookTypePub.Mouse) {
                 if (MouseHook == null) {
                     return true;
                 }
@@ -93,6 +101,20 @@ namespace UI_Mimic.Windows {
                 }
                 MouseHook = null;
                 _mouseHookId = IntPtr.Zero;
+            } else if (PubHook == HookTypePub.Debug_Feature_01_Replacement) {
+                if(Debug_Feature_01_Replacement_CBD == null) {
+                    return true;
+                }
+                if(UnhookWindowsHookEx(_Debug_Feature_01_Replacement_IntPtr[0]) is false) {
+                    return false;
+                }
+                if (UnhookWindowsHookEx(_Debug_Feature_01_Replacement_IntPtr[1]) is false) {
+                    return false;
+                }
+                Debug_Feature_01_Replacement_CBD = null;
+                _Debug_Feature_01_Replacement_IntPtr = new IntPtr[2];
+            } else {
+                return false;
             }
             return true;
         }
@@ -145,7 +167,8 @@ namespace UI_Mimic.Windows {
             bool ButtonDirection = false;
             try {
                 MouseButtons ButtonClicked = MouseButtons.None;
-                MouseEvents Event = (MouseEvents)EventPtr; //Should possibly Call to Marshal for conversion?
+                MouseEvents Event = Marshal.PtrToStructure<MouseEvents>(EventPtr); //Should possibly Call to Marshal for conversion?
+
                 //https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct
                 MouseInput input = Marshal.PtrToStructure<MouseInput>(InputPtr);
 
@@ -235,12 +258,27 @@ namespace UI_Mimic.Windows {
 
         [MTAThread]
         private int ReplacementHookProc(int Code, IntPtr EventPtr, IntPtr InputPtr) {
-            if (SafetyChecks(Code) == false || Debug_Feature_01_Replacement_Target.Debug_TrueValue == default || Debug_Feature_01_Replacement_Replace.Debug_TrueValue == default) {
-                return CallNextHookEx(_keyboardHookId, Code, EventPtr, InputPtr);
-            }
+            //Decode the incoming data so that we can return the proper Id
+            Debug_Feature_01_MultiTypeStorage MTS = new Debug_Feature_01_MultiTypeStorage(Marshal.ReadInt32(EventPtr));
+            IntPtr ReturnPtr = 
+                MTS.KeyEvent == KeyEvents.None ? 
+                _Debug_Feature_01_Replacement_IntPtr[0] : 
+                _Debug_Feature_01_Replacement_IntPtr[1] ;
             
+            if(MTS.MouseEvent == MouseEvents.None && MTS.KeyEvent == KeyEvents.None) {
+                return CallNextHookEx(ReturnPtr,Code,EventPtr,InputPtr);
+            }
+            if (SafetyChecks(Code) == false || Debug_Feature_01_Replacement_Target.Debug_TrueValue == default || Debug_Feature_01_Replacement_Replace.Debug_TrueValue == default) {
+                return CallNextHookEx(ReturnPtr, Code, EventPtr, InputPtr);
+            }
+            if (Debug_Feature_01_Replacement_Target.Equals(MTS) == false) {
+                return CallNextHookEx(ReturnPtr, Code, EventPtr, InputPtr);
+            }
+            if (Debug_Feature_01_Replacement_Replace.Equals(MTS)) {
+                return CallNextHookEx(ReturnPtr, Code, EventPtr, InputPtr);
+            }
 
-
+            Marshal.StructureToPtr(Debug_Feature_01_Replacement_Replace.Debug_TrueValue, EventPtr, true);
             return CallNextHookEx(_keyboardHookId, Code, EventPtr, InputPtr);
         }
 

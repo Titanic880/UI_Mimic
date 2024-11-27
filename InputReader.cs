@@ -18,7 +18,7 @@ namespace UI_Mimic {
 
         protected CallbackDelegate MouseHook = null;
         protected CallbackDelegate KeyboardHook = null;
-        protected CallbackDelegate[] Debug_Feature_01_Replacement_CBD = new CallbackDelegate[2];
+        protected CallbackDelegate Debug_Feature_01_Replacement_CBD = null;
 
         protected delegate int CallbackDelegate(int Code, IntPtr W, IntPtr L);
 

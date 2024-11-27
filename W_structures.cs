@@ -4,9 +4,9 @@ using System;
 
 namespace UI_Mimic {
     public enum HookTypePub {
-        Keyboard = HookType.WH_KEYBOARD_LL,
-        Mouse = HookType.WH_MOUSE_LL,
-        Debug_Feature_01_Replacement = HookType.WH_KEYBOARD_LL | HookType.WH_MOUSE_LL
+        Keyboard = HookType.WH_KEYBOARD,
+        Mouse = HookType.WH_MOUSE,
+        Debug_Feature_01_Replacement = HookType.WH_KEYBOARD | HookType.WH_MOUSE
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -19,10 +19,10 @@ namespace UI_Mimic {
             Debug_TrueValue = value;
 
             //Check to see if value falls under key event or mouse event then generate the events
-            if(value <= (int)KeyEvents.KeyDown && value >= (int)KeyEvents.SKeyUp) {
+            if (value <= (int)KeyEvents.KeyDown && value >= (int)KeyEvents.SKeyUp) {
                 KeyEvent = (KeyEvents)value;
                 MouseEvent = MouseEvents.None;
-            }else if (value <= (int)MouseEvents.MouseMove && value >= (int)MouseEvents.MouseScroll) {
+            } else if (value <= (int)MouseEvents.MouseMove && value >= (int)MouseEvents.MouseScroll) {
                 KeyEvent = KeyEvents.None;
                 MouseEvent = (MouseEvents)value;
             } else {
@@ -31,6 +31,7 @@ namespace UI_Mimic {
                 MouseEvent = MouseEvents.None;
             }
         }
+        
     }
     [StructLayout(LayoutKind.Sequential)]
     internal struct MouseInput {
