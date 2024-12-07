@@ -4,8 +4,8 @@ using System;
 
 namespace UI_Mimic {
     public enum HookTypePub {
-        Keyboard = HookType.WH_KEYBOARD,
-        Mouse = HookType.WH_MOUSE,
+        Keyboard = HookType.WH_KEYBOARD_LL,
+        Mouse = HookType.WH_MOUSE_LL,
         Debug_Feature_01_Replacement = HookType.WH_KEYBOARD | HookType.WH_MOUSE
     }
 
@@ -31,7 +31,6 @@ namespace UI_Mimic {
                 MouseEvent = MouseEvents.None;
             }
         }
-        
     }
     [StructLayout(LayoutKind.Sequential)]
     internal struct MouseInput {
