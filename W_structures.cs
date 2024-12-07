@@ -6,7 +6,7 @@ namespace UI_Mimic {
     public enum HookTypePub {
         Keyboard = HookType.WH_KEYBOARD_LL,
         Mouse = HookType.WH_MOUSE_LL,
-        Debug_Feature_01_Replacement = HookType.WH_KEYBOARD | HookType.WH_MOUSE
+        Debug_Feature_01_Replacement = Keyboard | Mouse
     }
 
     [StructLayout(LayoutKind.Sequential)]

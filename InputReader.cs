@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
+using System.Linq;
 
 namespace UI_Mimic {
     public abstract class InputReader : IDisposable {
@@ -11,6 +12,8 @@ namespace UI_Mimic {
         //(Switch these to struct of MouseAction & Keys ?)
         protected Debug_Feature_01_MultiTypeStorage Debug_Feature_01_Replacement_Target;   //Item to look for to replace
         protected Debug_Feature_01_MultiTypeStorage Debug_Feature_01_Replacement_Replace;  //new item to replace it
+        public bool Debug_Feature_01_LockReplacement { get; protected set; } = false;
+
 
         protected IntPtr _mouseHookId = IntPtr.Zero;
         protected IntPtr _keyboardHookId = IntPtr.Zero;
@@ -98,6 +101,12 @@ namespace UI_Mimic {
         /// <param name="AllowedWindows"></param>
         /// <returns></returns>
         public static InputReader GetInputReader(bool Global, string[] AllowedWindows) {
+            if(AllowedWindows.Length <= 0) {
+                throw new ArgumentException("AllowedWindows at/below 0 index size");
+            } else if (AllowedWindows.Contains("")) {
+                throw new ArgumentException("AllowedWindows cannot contain blank indexes");
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return new Windows.W_UIReader(Global, AllowedWindows);
             } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
@@ -108,6 +117,10 @@ namespace UI_Mimic {
             } else {
                 throw new NotSupportedException("Operating system you are running currently does not support this project.");
             }
+        }
+        [Obsolete("Method Name has been changed to: GetInputReader")]
+        public static InputReader ReaderFactory(bool Global, string[] AllowedWindows) {
+            return GetInputReader(Global, AllowedWindows);
         }
     }
 }

@@ -29,6 +29,28 @@ namespace UI_Mimic.Windows {
             base(Global, LoggingWindows) {
         }
 
+        public bool Debug_Feature_01_SetReplace(Debug_Feature_01_MultiTypeStorage obj) {
+            if (Debug_Feature_01_LockReplacement) {
+                return false;
+            }
+            Debug_Feature_01_Replacement_Replace = obj;
+            return true;
+        }
+        public bool Debug_Feature_01_SetTarget(Debug_Feature_01_MultiTypeStorage obj) {
+            if(Debug_Feature_01_LockReplacement) {
+                return false;
+            }
+            Debug_Feature_01_Replacement_Target = obj;
+            return true;
+        }
+        public bool Debug_Feature_01_SetReplacementLock() {
+            if( Debug_Feature_01_LockReplacement) {
+                return false;
+            }
+            Debug_Feature_01_LockReplacement = true;
+            return true;
+        }
+
         public override bool GenerateHook(HookTypePub PubHook) {
             if (LoggingWindows.Length < 1) return false;
 
@@ -49,21 +71,16 @@ namespace UI_Mimic.Windows {
                 _mouseHookId = ConnectHook(MouseHook);
             }
             else if(PubHook == HookTypePub.Debug_Feature_01_Replacement) {
-                //Checked seperately due to how C# doesnt like checking null & length at same time (Null arr will throw error on length check)
-                if(Debug_Feature_01_Replacement_CBD == null) {
-                    return false;
-                }
                 if(Debug_Feature_01_Replacement_CBD != null) {
                     return false;
                 }
-
                 Debug_Feature_01_Replacement_CBD = new CallbackDelegate(ReplacementHookProc);
                 Type = (int)HookType.WH_KEYBOARD;
                 _Debug_Feature_01_Replacement_IntPtr[0] = ConnectHook(Debug_Feature_01_Replacement_CBD);
                 Type = (int)HookTypePub.Mouse;
                 _Debug_Feature_01_Replacement_IntPtr[1] = ConnectHook(Debug_Feature_01_Replacement_CBD);
-
-                return false;//Switch to True
+                Debug_Feature_01_LockReplacement = false;
+                return true;
             } else {
                 return false;
             }
@@ -111,6 +128,7 @@ namespace UI_Mimic.Windows {
                 if (UnhookWindowsHookEx(_Debug_Feature_01_Replacement_IntPtr[1]) is false) {
                     return false;
                 }
+                Debug_Feature_01_LockReplacement = false;
                 Debug_Feature_01_Replacement_CBD = null;
                 _Debug_Feature_01_Replacement_IntPtr = new IntPtr[2];
             } else {
@@ -256,6 +274,7 @@ namespace UI_Mimic.Windows {
             return CallNextHookEx(_keyboardHookId, Code, W, L);
         }
 
+        public int Debug_Replacements = 0;
         [MTAThread]
         private int ReplacementHookProc(int Code, IntPtr EventPtr, IntPtr InputPtr) {
             //Decode the incoming data so that we can return the proper Id
@@ -265,7 +284,7 @@ namespace UI_Mimic.Windows {
                 _Debug_Feature_01_Replacement_IntPtr[0] : 
                 _Debug_Feature_01_Replacement_IntPtr[1] ;
             
-            if(MTS.MouseEvent == MouseEvents.None && MTS.KeyEvent == KeyEvents.None) {
+            if(MTS.MouseEvent == MouseEvents.None && MTS.KeyEvent == KeyEvents.None || MTS.MouseEvent == MouseEvents.MouseMove) {
                 return CallNextHookEx(ReturnPtr,Code,EventPtr,InputPtr);
             }
             if (SafetyChecks(Code) == false || Debug_Feature_01_Replacement_Target.Debug_TrueValue == default || Debug_Feature_01_Replacement_Replace.Debug_TrueValue == default) {
@@ -277,8 +296,8 @@ namespace UI_Mimic.Windows {
             if (Debug_Feature_01_Replacement_Replace.Equals(MTS)) {
                 return CallNextHookEx(ReturnPtr, Code, EventPtr, InputPtr);
             }
-
-            Marshal.StructureToPtr(Debug_Feature_01_Replacement_Replace.Debug_TrueValue, EventPtr, true);
+            Debug_Replacements++;
+            //Marshal.StructureToPtr(Debug_Feature_01_Replacement_Replace.Debug_TrueValue, EventPtr, true);
             return CallNextHookEx(_keyboardHookId, Code, EventPtr, InputPtr);
         }
 
