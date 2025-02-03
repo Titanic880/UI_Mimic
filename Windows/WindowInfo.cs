@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 using System;
+using System.Windows.Forms;
 
 namespace UI_Mimic.Windows {
     public static class W_WindowInfo {
@@ -11,7 +12,30 @@ namespace UI_Mimic.Windows {
         private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+        
+        /// <summary>
+        /// Pass in the button you are using for this function (object? sender -> sender)
+        /// </summary>
+        /// <param name="ControlledButton"></param>
+        /// <returns></returns>
+        public static string FindWindow(Button ControlledButton) {
+            string OGText = ControlledButton.Text;
+            MessageBox.Show("After Closing this popup open the window you want to catch the name of\n another popup will happen when it is done...");
+            for (int i = 5; i != 0; i--) {
+                ControlledButton.Text = i.ToString();
+                ControlledButton.Update();
+                //Sleep for 1 second so we can update the UI every Second
+                System.Threading.Thread.Sleep(1000);
+            }
+            string selectedwindow = UI_Mimic.Windows.W_WindowInfo.GetActiveWindowTitle();
+            DialogResult res = MessageBox.Show($"Window with the name of: '{selectedwindow}' was caught!\n(Please note that names can sometimes be inaccurate to the title provided but still relevant)\n is this correct?","",MessageBoxButtons.YesNo);
 
+            if (res == DialogResult.Yes) {
+
+            }
+            ControlledButton.Text = OGText;
+            return selectedwindow;
+        }
         public static void FocusProcess(string processname, bool AccurateCheck = false) {
             void Logic(Process window) {
                 IntPtr hWnd = window.MainWindowHandle;

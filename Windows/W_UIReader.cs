@@ -29,6 +29,7 @@ namespace UI_Mimic.Windows {
             base(Global, LoggingWindows) {
         }
 
+
         public bool Debug_Feature_01_SetReplace(Debug_Feature_01_MultiTypeStorage obj) {
             if (Debug_Feature_01_LockReplacement) {
                 return false;
@@ -185,7 +186,7 @@ namespace UI_Mimic.Windows {
             bool ButtonDirection = false;
             try {
                 MouseButtons ButtonClicked = MouseButtons.None;
-                MouseEvents Event = Marshal.PtrToStructure<MouseEvents>(EventPtr); //Should possibly Call to Marshal for conversion?
+                MouseEvents Event = (MouseEvents)EventPtr; //Marshal Ptr conversion throws `System.ArgumentException: 'The specified structure must be blittable or have layout information.'`
 
                 //https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct
                 MouseInput input = Marshal.PtrToStructure<MouseInput>(InputPtr);
