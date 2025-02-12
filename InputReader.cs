@@ -39,14 +39,35 @@ namespace UI_Mimic {
         public event LocalMouseEventHandler OnMouseClick;
         public event LocalMouseEventDown OnMouseDown;
         public event LocalMouseEventUp OnMouseUp;
-        protected void TriggerKeyDown(Keys Key, bool Shift, bool Ctrl, bool Alt, bool Home) => KeyDown?.Invoke(Key, Shift, Ctrl, Alt, Home);
-        protected void TriggerKeyUp(Keys Key, bool Shift, bool Ctrl, bool Alt, bool Home) => KeyUp?.Invoke(Key, Shift, Ctrl, Alt, Home);
-        protected void TriggerOnError(Exception e) => OnError?.Invoke(e);
-        protected void TriggerOnMouseMove(int xPos, int yPos) => OnMouseMove?.Invoke(xPos, yPos);
-        protected void TriggerOnMouseClick(MouseButtons MouseAction) => OnMouseClick?.Invoke(MouseAction);
-        protected void TriggerOnMouseDown(MouseButtons MouseAction) => OnMouseDown?.Invoke(MouseAction);
-        protected void TriggerOnMouseUp(MouseButtons MouseAction) => OnMouseUp?.Invoke(MouseAction);
-
+        protected void TriggerKeyDown(Keys Key, bool Shift, bool Ctrl, bool Alt, bool Home) {
+            if (KeyDown != null) {
+                KeyDown.Invoke(Key, Shift, Ctrl, Alt, Home);
+            }
+        }
+        protected void TriggerKeyUp(Keys Key, bool Shift, bool Ctrl, bool Alt, bool Home) {
+            if (KeyUp != null)
+                KeyUp.Invoke(Key, Shift, Ctrl, Alt, Home);
+        }
+        protected void TriggerOnError(Exception e) {
+            if (OnError != null)
+                OnError.Invoke(e);
+        }
+        protected void TriggerOnMouseMove(int xPos, int yPos) {
+            if (OnMouseMove != null)
+                OnMouseMove.Invoke(xPos, yPos);
+        }
+        protected void TriggerOnMouseClick(MouseButtons MouseAction) {
+            if (OnMouseClick != null)
+                OnMouseClick.Invoke(MouseAction);
+        }
+        protected void TriggerOnMouseDown(MouseButtons MouseAction) {
+            if (OnMouseDown != null)
+                OnMouseDown.Invoke(MouseAction);
+        }
+        protected void TriggerOnMouseUp(MouseButtons MouseAction) {
+            if(OnMouseUp != null)
+            OnMouseUp.Invoke(MouseAction);
+        }
         public void Dispose() {
             
         }
@@ -66,14 +87,6 @@ namespace UI_Mimic {
         }*/
 
         public virtual bool GenerateHook(HookTypePub typePub) {
-            /*
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-
-
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                //Currently unsupported.
-                return false;
-            }*/
             return false;
         }
         public virtual bool DisconnectHook(HookTypePub typePub) {

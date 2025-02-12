@@ -12,18 +12,18 @@ namespace UI_Mimic.Windows {
         private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-        
+
         /// <summary>
-        /// Pass in the button you are using for this function (object? sender -> sender)
+        /// Pass in the Control you want the text to be overriden for this function (will return to inputted text after running)
         /// </summary>
-        /// <param name="ControlledButton"></param>
+        /// <param name="TextControl"></param>
         /// <returns></returns>
-        public static string FindWindow(Button ControlledButton) {
-            string OGText = ControlledButton.Text;
+        public static string FindWindow(Control TextControl) {
+            string OGText = TextControl.Text;
             MessageBox.Show("After Closing this popup open the window you want to catch the name of\n another popup will happen when it is done...");
             for (int i = 5; i != 0; i--) {
-                ControlledButton.Text = i.ToString();
-                ControlledButton.Update();
+                TextControl.Text = i.ToString();
+                TextControl.Update();
                 //Sleep for 1 second so we can update the UI every Second
                 System.Threading.Thread.Sleep(1000);
             }
@@ -33,7 +33,7 @@ namespace UI_Mimic.Windows {
             if (res == DialogResult.Yes) {
 
             }
-            ControlledButton.Text = OGText;
+            TextControl.Text = OGText;
             return selectedwindow;
         }
         public static void FocusProcess(string processname, bool AccurateCheck = false) {

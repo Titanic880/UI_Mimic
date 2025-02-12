@@ -101,6 +101,7 @@ namespace UI_Mimic {
     internal enum MouseEvents {
         None = 0x0000,
         MouseMove = 0x0200,
+        MouseMoveFloat = 0x0000000000000200,
         MouseClickLeftDown = 0x0201,
         MouseClickLeftUp = 0x0202,
         MouseClickRightDown = 0x0204,
